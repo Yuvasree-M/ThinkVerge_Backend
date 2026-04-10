@@ -45,4 +45,21 @@ public class UserService {
                 .findByEmail(email)
                 .orElseThrow();
     }
+    
+ // admin - all users
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    // admin - change role
+    public User changeRole(Long id, Role role) {
+        User user = userRepository.findById(id).orElseThrow();
+        user.setRole(role);
+        return userRepository.save(user);
+    }
+
+    // admin - delete
+    public void deleteUser(Long id) {
+        userRepository.deleteById(id);
+    }
 }

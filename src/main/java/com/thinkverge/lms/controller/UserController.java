@@ -1,5 +1,6 @@
 package com.thinkverge.lms.controller;
 
+import com.thinkverge.lms.enums.Role;
 import com.thinkverge.lms.model.User;
 import com.thinkverge.lms.service.UserService;
 
@@ -33,6 +34,29 @@ public class UserController {
     @GetMapping("/students")
     public List<User> students() {
         return userService.getAllStudents();
+    }
+
+    // ================= ADMIN =================
+
+    // all users (admin)
+    @GetMapping
+    public List<User> allUsers() {
+        return userService.getAllUsers();
+    }
+
+    // change role
+    @PutMapping("/{id}/role")
+    public User changeRole(
+            @PathVariable Long id,
+            @RequestParam Role role
+    ) {
+        return userService.changeRole(id, role);
+    }
+
+    // delete user
+    @DeleteMapping("/{id}")
+    public void deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
     }
 
     // update last seen
