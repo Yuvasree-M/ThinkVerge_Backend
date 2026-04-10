@@ -27,3 +27,4 @@ application.properties.backup
 # Package files
 *.jar
 *.war
+*.env
