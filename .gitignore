@@ -1,0 +1,29 @@
+# Eclipse
+.classpath
+.project
+.settings/
+bin/
+
+# IntelliJ (if ever opened there)
+.idea/
+*.iml
+
+# Maven
+target/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Spring Boot
+application.properties.backup
+
+# Java
+*.class
+
+# Package files
+*.jar
+*.war
