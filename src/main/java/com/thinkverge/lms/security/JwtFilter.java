@@ -31,33 +31,38 @@ public class JwtFilter extends OncePerRequestFilter {
             FilterChain chain
     ) throws ServletException, IOException {
 
+        String path = request.getRequestURI();
+
+        // ✅ STEP 1: SKIP PUBLIC ENDPOINTS (VERY IMPORTANT)
+        if (path.startsWith("/api/auth/")) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         String token = extractToken(request);
 
         if (token != null) {
 
             try {
 
-                // check revoked
+                // ❌ Check revoked token
                 String jti = jwtService.extractJti(token);
                 if (tokenBlocklist.isRevoked(jti)) {
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     return;
                 }
 
-                // extract email
                 String username = jwtService.extractUsername(token);
                 String role = jwtService.extractUserRole(token);
 
-                // if already authenticated skip
                 if (username != null &&
                         SecurityContextHolder.getContext().getAuthentication() == null) {
 
-                    // load user from DB (IMPORTANT)
                     UserDetails userDetails;
+
                     try {
                         userDetails = userDetailsService.loadUserByUsername(username);
                     } catch (UsernameNotFoundException ex) {
-                        // email changed in DB -> reject token
                         chain.doFilter(request, response);
                         return;
                     }
@@ -77,13 +82,11 @@ public class JwtFilter extends OncePerRequestFilter {
                                         authorities
                                 );
 
-                        SecurityContextHolder.getContext()
-                                .setAuthentication(auth);
+                        SecurityContextHolder.getContext().setAuthentication(auth);
                     }
                 }
 
             } catch (Exception e) {
-                // invalid token ignore
                 SecurityContextHolder.clearContext();
             }
         }
@@ -95,8 +98,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String header = request.getHeader("Authorization");
 
-        if (header == null || !header.startsWith("Bearer "))
+        if (header == null || !header.startsWith("Bearer ")) {
             return null;
+        }
 
         return header.substring(7);
     }
