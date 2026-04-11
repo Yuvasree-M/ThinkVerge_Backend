@@ -1,6 +1,7 @@
 package com.thinkverge.lms.service;
 
 import com.thinkverge.lms.dto.request.LessonRequest;
+import com.thinkverge.lms.dto.request.LessonUpdateRequest;
 import com.thinkverge.lms.enums.EnrollmentStatus;
 import com.thinkverge.lms.model.CourseModule;
 import com.thinkverge.lms.model.Enrollment;
@@ -80,5 +81,23 @@ public class LessonService {
 
         return lessonRepository
                 .findByModuleOrderByOrderIndexAsc(module);
+    }
+    
+    public Lesson update(Long id, LessonUpdateRequest req) {
+        Lesson lesson = lessonRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Lesson not found"));
+
+        lesson.setTitle(req.getTitle());
+        lesson.setType(req.getType());
+        lesson.setContent(req.getContent());
+        lesson.setVideoUrl(req.getVideoUrl());
+        lesson.setDurationSeconds(req.getDurationSeconds());
+        lesson.setOrderIndex(req.getOrderIndex());
+
+        return lessonRepository.save(lesson);
+    }
+
+    public void delete(Long id) {
+    	lessonRepository.deleteById(id);
     }
 }

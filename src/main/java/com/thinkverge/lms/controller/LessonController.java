@@ -1,11 +1,13 @@
 package com.thinkverge.lms.controller;
 
 import com.thinkverge.lms.dto.request.LessonRequest;
+import com.thinkverge.lms.dto.request.LessonUpdateRequest;
 import com.thinkverge.lms.model.Lesson;
 import com.thinkverge.lms.service.LessonService;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -31,5 +33,16 @@ public class LessonController {
             @PathVariable Long moduleId
     ) {
         return lessonService.getByModule(moduleId);
+    }
+    
+    @PutMapping("/{id}")
+    public Lesson update(@PathVariable Long id,
+                         @RequestBody LessonUpdateRequest req) {
+        return lessonService.update(id, req);
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Long id) {
+        lessonService.delete(id);
     }
 }

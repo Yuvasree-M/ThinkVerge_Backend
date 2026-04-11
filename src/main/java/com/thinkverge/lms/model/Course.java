@@ -5,7 +5,9 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 import com.thinkverge.lms.enums.CourseStatus;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
 @Table(name = "courses")
 @Data

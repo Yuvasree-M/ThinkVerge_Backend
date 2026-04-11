@@ -39,9 +39,11 @@ public class SecurityConfig {
             	    .requestMatchers("/api/courses/admin/**").hasRole("ADMIN")
             	    .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-            	    // Instructor endpoints
+            	 // Instructor endpoints
             	    .requestMatchers("/api/courses/instructor/**").hasRole("INSTRUCTOR")
             	    .requestMatchers("/api/instructor/**").hasRole("INSTRUCTOR")
+            	    .requestMatchers("/api/modules/**").hasRole("INSTRUCTOR")   
+            	    .requestMatchers("/api/lessons/**").hasRole("INSTRUCTOR")   
 
             	    // Student endpoints
             	    .requestMatchers("/api/student/**").hasRole("STUDENT")

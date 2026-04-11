@@ -3,7 +3,11 @@ package com.thinkverge.lms.model;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
 @Table(name = "modules")
 @Data
@@ -30,4 +34,7 @@ public class CourseModule {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+    
+    @OneToMany(mappedBy = "module", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Lesson> lessons;
 }
