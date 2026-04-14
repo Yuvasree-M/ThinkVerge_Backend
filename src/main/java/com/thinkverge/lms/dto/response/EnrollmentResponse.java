@@ -23,6 +23,8 @@ public class EnrollmentResponse {
     public static class CourseDto {
         private Long id;
         private String title;
+        private String thumbnail;   // ✅ ADD THIS
+        private String category;    // (optional but useful)
     }
 
 

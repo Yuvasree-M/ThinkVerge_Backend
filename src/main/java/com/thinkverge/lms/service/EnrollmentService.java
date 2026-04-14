@@ -110,7 +110,7 @@ public class EnrollmentService {
         User student = userRepository.findByEmail(email).orElseThrow();
 
         return enrollmentRepository
-                .findByStudent(student)
+                .findByStudentWithCourse(student)   // ✅ FIXED
                 .stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -137,10 +137,12 @@ public class EnrollmentService {
                 .requestedAt(e.getEnrolledAt())
 
                 .course(
-                        EnrollmentResponse.CourseDto.builder()
-                                .id(e.getCourse().getId())
-                                .title(e.getCourse().getTitle())
-                                .build()
+                		EnrollmentResponse.CourseDto.builder()
+                	    .id(e.getCourse().getId())
+                	    .title(e.getCourse().getTitle())
+                	    .thumbnail(e.getCourse().getThumbnail())   // ✅ IMPORTANT
+                	    .category(e.getCourse().getCategory())     // optional
+                	    .build()
                 )
 
                 .student(
