@@ -4,6 +4,7 @@ import com.thinkverge.lms.dto.request.LessonRequest;
 import com.thinkverge.lms.dto.request.LessonUpdateRequest;
 import com.thinkverge.lms.dto.response.LessonResponse;
 import com.thinkverge.lms.enums.EnrollmentStatus;
+import com.thinkverge.lms.enums.LessonType;
 import com.thinkverge.lms.model.CourseModule;
 import com.thinkverge.lms.model.Enrollment;
 import com.thinkverge.lms.model.Lesson;
@@ -34,8 +35,12 @@ public class LessonService {
                 .module(module)
                 .title(request.getTitle())
                 .type(request.getType())
-                .content(request.getContent())
-                .videoUrl(request.getVideoUrl())
+                .content(
+                    request.getType() == LessonType.TEXT ? request.getContent() : null
+                )
+                .videoUrl(
+                    request.getType() != LessonType.TEXT ? request.getVideoUrl() : null
+                )
                 .durationSeconds(request.getDurationSeconds())
                 .orderIndex(request.getOrderIndex())
                 .createdAt(LocalDateTime.now())
@@ -77,11 +82,21 @@ public class LessonService {
 
         lesson.setTitle(req.getTitle());
         lesson.setType(req.getType());
-        lesson.setContent(req.getContent());
-        lesson.setVideoUrl(req.getVideoUrl());
+
+        // ✅ TEXT only
+        lesson.setContent(req.getType().name().equals("TEXT") ? req.getContent() : null);
+
+        // ✅ FILES
+        lesson.setVideoUrl(
+                req.getType().name().equals("VIDEO") ||
+                req.getType().name().equals("PDF") ||
+                req.getType().name().equals("IMAGE")
+                        ? req.getVideoUrl()
+                        : null
+        );
+
         lesson.setDurationSeconds(req.getDurationSeconds());
         lesson.setOrderIndex(req.getOrderIndex());
-
         return toResponse(lessonRepository.save(lesson));
     }
 
