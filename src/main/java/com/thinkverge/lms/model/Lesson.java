@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.thinkverge.lms.enums.LessonType;
 
 @Entity
@@ -20,6 +21,7 @@ public class Lesson {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "module_id")
+    @JsonBackReference("module-lessons")
     private CourseModule module;
     
     @Column(nullable = false)

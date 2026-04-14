@@ -1,15 +1,19 @@
-package com.thinkverge.lms.dto.request;
+package com.thinkverge.lms.dto.response;
 
 import com.thinkverge.lms.enums.LessonType;
+import lombok.Builder;
 import lombok.Data;
+import java.time.LocalDateTime;
 
 @Data
-public class LessonRequest {
-    private Long moduleId;
+@Builder
+public class LessonResponse {
+    private Long id;
     private String title;
     private LessonType type;
     private String content;
     private String videoUrl;
     private Integer durationSeconds;
     private Integer orderIndex;
+    private LocalDateTime createdAt;
 }

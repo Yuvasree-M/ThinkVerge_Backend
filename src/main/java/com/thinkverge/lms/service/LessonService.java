@@ -2,18 +2,16 @@ package com.thinkverge.lms.service;
 
 import com.thinkverge.lms.dto.request.LessonRequest;
 import com.thinkverge.lms.dto.request.LessonUpdateRequest;
+import com.thinkverge.lms.dto.response.LessonResponse;
 import com.thinkverge.lms.enums.EnrollmentStatus;
 import com.thinkverge.lms.model.CourseModule;
 import com.thinkverge.lms.model.Enrollment;
 import com.thinkverge.lms.model.Lesson;
 import com.thinkverge.lms.repository.CourseModuleRepository;
-import com.thinkverge.lms.repository.LessonRepository;
 import com.thinkverge.lms.repository.EnrollmentRepository;
-
+import com.thinkverge.lms.repository.LessonRepository;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,65 +23,55 @@ public class LessonService {
     private final LessonRepository lessonRepository;
     private final CourseModuleRepository moduleRepository;
     private final EnrollmentRepository enrollmentRepository;
-    private final FileUploadService fileUploadService;
     private final EmailService emailService;
-    
-    public Lesson createLesson(
-            LessonRequest request,
-            MultipartFile videoFile
-    ) {
 
-        CourseModule module = moduleRepository
-                .findById(request.getModuleId())
-                .orElseThrow();
-
-        String videoUrl = request.getVideoUrl();
-
-        // upload video if file provided
-        if (videoFile != null && !videoFile.isEmpty()) {
-            videoUrl = fileUploadService.uploadFile(videoFile);
-        }
+    // ── CREATE ────────────────────────────────────────────
+    public LessonResponse create(LessonRequest request) {
+        CourseModule module = moduleRepository.findById(request.getModuleId())
+                .orElseThrow(() -> new RuntimeException("Module not found"));
 
         Lesson lesson = Lesson.builder()
                 .module(module)
                 .title(request.getTitle())
                 .type(request.getType())
                 .content(request.getContent())
-                .videoUrl(videoUrl)
+                .videoUrl(request.getVideoUrl())
                 .durationSeconds(request.getDurationSeconds())
                 .orderIndex(request.getOrderIndex())
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        Lesson savedLesson = lessonRepository.save(lesson);
+        Lesson saved = lessonRepository.save(lesson);
 
-        // Send email to all approved enrolled students
-
+        // notify enrolled students
         List<Enrollment> enrollments = enrollmentRepository.findByCourse(module.getCourse());
-        for (Enrollment enrollment : enrollments) {
-            if (enrollment.getStatus() == EnrollmentStatus.APPROVED) {
+        for (Enrollment e : enrollments) {
+            if (e.getStatus() == EnrollmentStatus.APPROVED) {
                 emailService.sendNewLesson(
-                        enrollment.getStudent().getEmail(),
-                        savedLesson.getTitle(),
+                        e.getStudent().getEmail(),
+                        saved.getTitle(),
                         module.getCourse().getTitle()
                 );
             }
         }
 
-        return savedLesson;
+        return toResponse(saved);
     }
 
-    public List<Lesson> getByModule(Long moduleId) {
-
-        CourseModule module = moduleRepository
-                .findById(moduleId)
-                .orElseThrow();
+    // ── GET BY MODULE ─────────────────────────────────────
+    public List<LessonResponse> getByModule(Long moduleId) {
+        CourseModule module = moduleRepository.findById(moduleId)
+                .orElseThrow(() -> new RuntimeException("Module not found"));
 
         return lessonRepository
-                .findByModuleOrderByOrderIndexAsc(module);
+                .findByModuleOrderByOrderIndexAsc(module)
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
-    
-    public Lesson update(Long id, LessonUpdateRequest req) {
+
+    // ── UPDATE ────────────────────────────────────────────
+    public LessonResponse update(Long id, LessonUpdateRequest req) {
         Lesson lesson = lessonRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Lesson not found"));
 
@@ -94,10 +82,25 @@ public class LessonService {
         lesson.setDurationSeconds(req.getDurationSeconds());
         lesson.setOrderIndex(req.getOrderIndex());
 
-        return lessonRepository.save(lesson);
+        return toResponse(lessonRepository.save(lesson));
     }
 
+    // ── DELETE ────────────────────────────────────────────
     public void delete(Long id) {
-    	lessonRepository.deleteById(id);
+        lessonRepository.deleteById(id);
+    }
+
+    // ── MAPPER ────────────────────────────────────────────
+    private LessonResponse toResponse(Lesson l) {
+        return LessonResponse.builder()
+                .id(l.getId())
+                .title(l.getTitle())
+                .type(l.getType())
+                .content(l.getContent())
+                .videoUrl(l.getVideoUrl())
+                .durationSeconds(l.getDurationSeconds())
+                .orderIndex(l.getOrderIndex())
+                .createdAt(l.getCreatedAt())
+                .build();
     }
 }

@@ -4,6 +4,7 @@ import com.thinkverge.lms.security.JwtFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.*;
+import org.springframework.web.multipart.support.MultipartFilter;
 
 import java.util.List;
 
@@ -30,25 +32,39 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
 
-            	    // Public endpoints
+            	    // Public
             	    .requestMatchers("/api/auth/**").permitAll()
             	    .requestMatchers("/api/courses").permitAll()
             	    .requestMatchers("/api/courses/*").permitAll()
 
-            	    // Admin endpoints
+            	    // ✅ FIRST: allow GET for all roles
+            	    .requestMatchers(HttpMethod.GET, "/api/courses/**")
+            	        .hasAnyRole("STUDENT", "INSTRUCTOR", "ADMIN")
+
+            	    .requestMatchers(HttpMethod.GET, "/api/modules/**")
+            	        .hasAnyRole("STUDENT", "INSTRUCTOR", "ADMIN")
+
+            	    .requestMatchers(HttpMethod.GET, "/api/lessons/**")
+            	        .hasAnyRole("STUDENT", "INSTRUCTOR", "ADMIN")
+
+            	    // ❗ THEN restrict write operations
+            	    .requestMatchers("/api/modules/**")
+            	        .hasAnyRole("INSTRUCTOR", "ADMIN")
+
+            	    .requestMatchers("/api/lessons/**")
+            	        .hasAnyRole("INSTRUCTOR", "ADMIN")
+
+            	    // Admin
             	    .requestMatchers("/api/courses/admin/**").hasRole("ADMIN")
             	    .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-            	 // Instructor endpoints
+            	    // Instructor
             	    .requestMatchers("/api/courses/instructor/**").hasRole("INSTRUCTOR")
             	    .requestMatchers("/api/instructor/**").hasRole("INSTRUCTOR")
-            	    .requestMatchers("/api/modules/**").hasRole("INSTRUCTOR")   
-            	    .requestMatchers("/api/lessons/**").hasRole("INSTRUCTOR")   
 
-            	    // Student endpoints
+            	    // Student
             	    .requestMatchers("/api/student/**").hasRole("STUDENT")
 
-            	    // Any other request requires auth
             	    .anyRequest().authenticated()
             	)
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
@@ -65,7 +81,10 @@ public class SecurityConfig {
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
+    @Bean
+    public MultipartFilter multipartFilter() {
+        return new MultipartFilter();
+    }
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
