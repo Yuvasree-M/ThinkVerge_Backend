@@ -4,8 +4,6 @@ import lombok.Data;
 
 @Data
 public class GradeRequest {
-
-    private Integer marks;
+    private Integer grade;     // ✅ renamed from marks
     private String feedback;
-
 }

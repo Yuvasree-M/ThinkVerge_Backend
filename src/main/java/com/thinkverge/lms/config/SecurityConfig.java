@@ -61,7 +61,23 @@ public class SecurityConfig {
             	    // Instructor
             	    .requestMatchers("/api/courses/instructor/**").hasRole("INSTRUCTOR")
             	    .requestMatchers("/api/instructor/**").hasRole("INSTRUCTOR")
+            	    .requestMatchers(HttpMethod.GET, "/api/assignments/**")
+            	    .hasAnyRole("STUDENT", "INSTRUCTOR", "ADMIN")
+            	.requestMatchers("/api/assignments/**")
+            	    .hasAnyRole("INSTRUCTOR", "ADMIN")
 
+            	// Submissions
+            	.requestMatchers(HttpMethod.GET, "/api/submissions/my")
+            	    .hasRole("STUDENT")
+            	.requestMatchers(HttpMethod.POST, "/api/submissions")
+            	    .hasRole("STUDENT")
+            	.requestMatchers(HttpMethod.GET, "/api/submissions/assignment/**")
+            	    .hasAnyRole("INSTRUCTOR", "ADMIN")
+            	.requestMatchers(HttpMethod.PUT, "/api/submissions/*/grade")
+            	    .hasAnyRole("INSTRUCTOR", "ADMIN")
+
+            	// Upload
+            	.requestMatchers("/api/upload").authenticated()
             	    // Student
             	    .requestMatchers("/api/student/**").hasRole("STUDENT")
 

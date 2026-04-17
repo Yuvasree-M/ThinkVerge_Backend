@@ -3,15 +3,11 @@ package com.thinkverge.lms.model;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
-
 import com.thinkverge.lms.enums.SubmissionStatus;
 
 @Entity
 @Table(name = "submissions")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Data @NoArgsConstructor @AllArgsConstructor @Builder
 public class Submission {
 
     @Id
@@ -29,13 +25,16 @@ public class Submission {
     @Column(name = "file_url")
     private String fileUrl;
 
+    @Column(columnDefinition = "TEXT")
+    private String content;         // ✅ optional text answer
+
     @Column(name = "submitted_at")
     private LocalDateTime submittedAt;
 
     @Enumerated(EnumType.STRING)
     private SubmissionStatus status;
 
-    private Integer marks;
+    private Integer marks;          // keep DB column as marks
 
     @Column(columnDefinition = "TEXT")
     private String feedback;
