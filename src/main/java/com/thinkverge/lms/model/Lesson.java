@@ -33,8 +33,8 @@ public class Lesson {
     @Column(columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "video_url")
-    private String videoUrl;
+    @Column(name = "file_url")
+    private String fileUrl;
 
     @Column(name = "duration_seconds")
     private Integer durationSeconds;

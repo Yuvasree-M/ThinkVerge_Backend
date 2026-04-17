@@ -12,7 +12,7 @@ public class LessonResponse {
     private String title;
     private LessonType type;
     private String content;
-    private String videoUrl;
+    private String fileUrl;
     private Integer durationSeconds;
     private Integer orderIndex;
     private LocalDateTime createdAt;

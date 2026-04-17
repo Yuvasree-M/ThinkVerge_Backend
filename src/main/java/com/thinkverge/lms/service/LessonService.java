@@ -38,8 +38,8 @@ public class LessonService {
                 .content(
                     request.getType() == LessonType.TEXT ? request.getContent() : null
                 )
-                .videoUrl(
-                    request.getType() != LessonType.TEXT ? request.getVideoUrl() : null
+                .fileUrl(
+                    request.getType() != LessonType.TEXT ? request.getFileUrl() : null
                 )
                 .durationSeconds(request.getDurationSeconds())
                 .orderIndex(request.getOrderIndex())
@@ -87,11 +87,11 @@ public class LessonService {
         lesson.setContent(req.getType().name().equals("TEXT") ? req.getContent() : null);
 
         // ✅ FILES
-        lesson.setVideoUrl(
+        lesson.setFileUrl(
                 req.getType().name().equals("VIDEO") ||
                 req.getType().name().equals("PDF") ||
                 req.getType().name().equals("IMAGE")
-                        ? req.getVideoUrl()
+                        ? req.getFileUrl()
                         : null
         );
 
@@ -112,7 +112,7 @@ public class LessonService {
                 .title(l.getTitle())
                 .type(l.getType())
                 .content(l.getContent())
-                .videoUrl(l.getVideoUrl())
+                .fileUrl(l.getFileUrl())
                 .durationSeconds(l.getDurationSeconds())
                 .orderIndex(l.getOrderIndex())
                 .createdAt(l.getCreatedAt())
