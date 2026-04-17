@@ -41,6 +41,13 @@ public class ProgressController {
         );
     }
 
+    @PostMapping("/complete/{lessonId}")
+    public void completeAnyLesson(
+            @PathVariable Long lessonId,
+            Authentication auth
+    ) {
+        progressService.completeAnyLesson(lessonId, auth.getName());
+    }
     @GetMapping("/my")
     public List<ProgressResponse> myProgress(
             Authentication auth
