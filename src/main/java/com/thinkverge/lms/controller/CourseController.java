@@ -2,7 +2,6 @@ package com.thinkverge.lms.controller;
 
 import com.thinkverge.lms.dto.response.CourseResponse;
 import com.thinkverge.lms.service.CourseService;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -22,8 +21,8 @@ public class CourseController {
     public List<CourseResponse> getCourses() {
         return courseService.getApprovedCourses();
     }
-    
- // CourseController.java
+
+    /** --- Get all courses (Admin) --- */
     @GetMapping("/admin/all")
     public List<CourseResponse> getAllCoursesForAdmin() {
         return courseService.getAllCourses();
@@ -46,13 +45,30 @@ public class CourseController {
             Authentication auth
     ) {
         return courseService.createCourse(
-                title,
-                description,
-                category,
-                durationHours,
-                thumbnail,
-                auth.getName()
+                title, description, category, durationHours, thumbnail, auth.getName()
         );
+    }
+
+    /** --- Update course (Instructor) --- */
+    @PutMapping("/instructor/{id}")
+    public CourseResponse update(
+            @PathVariable Long id,
+            @RequestParam String title,
+            @RequestParam String description,
+            @RequestParam String category,
+            @RequestParam Integer durationHours,
+            @RequestParam(required = false) MultipartFile thumbnail,
+            Authentication auth
+    ) {
+        return courseService.updateCourse(
+                id, title, description, category, durationHours, thumbnail, auth.getName()
+        );
+    }
+
+    /** --- Delete course (Instructor) --- */
+    @DeleteMapping("/instructor/{id}")
+    public void delete(@PathVariable Long id, Authentication auth) {
+        courseService.deleteCourse(id, auth.getName());
     }
 
     /** --- Get my courses (Instructor) --- */

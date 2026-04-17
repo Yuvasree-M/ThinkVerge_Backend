@@ -75,6 +75,55 @@ public class CourseService {
         return toDto(saved);
     }
 
+    /** --- Update Course (Instructor) --- */
+    public CourseResponse updateCourse(
+            Long id,
+            String title,
+            String description,
+            String category,
+            Integer durationHours,
+            MultipartFile thumbnail,
+            String instructorEmail
+    ) {
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+
+        // Ensure the requesting instructor owns this course
+        if (!course.getInstructor().getEmail().equals(instructorEmail)) {
+            throw new RuntimeException("You are not authorized to edit this course");
+        }
+
+        course.setTitle(title);
+        course.setDescription(description);
+        course.setCategory(category);
+        course.setDurationHours(durationHours);
+        course.setUpdatedAt(LocalDateTime.now());
+
+        // If a new thumbnail is uploaded, replace the old one
+        if (thumbnail != null && !thumbnail.isEmpty()) {
+            String thumbnailUrl = fileUploadService.uploadFile(thumbnail);
+            course.setThumbnail(thumbnailUrl);
+        }
+
+        // Reset to PENDING so admin re-approves after edits
+        course.setStatus(CourseStatus.PENDING);
+
+        Course saved = courseRepository.save(course);
+        return toDto(saved);
+    }
+
+    /** --- Delete Course (Instructor) --- */
+    public void deleteCourse(Long id, String instructorEmail) {
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+
+        if (!course.getInstructor().getEmail().equals(instructorEmail)) {
+            throw new RuntimeException("You are not authorized to delete this course");
+        }
+
+        courseRepository.delete(course);
+    }
+
     /** --- Get all approved courses --- */
     public List<CourseResponse> getApprovedCourses() {
         return courseRepository.findByStatus(CourseStatus.APPROVED)
@@ -91,6 +140,7 @@ public class CourseService {
                 .build())
             .toList();
     }
+
     /** --- Get single course --- */
     public CourseResponse getCourse(Long id) {
         Course course = courseRepository.findById(id)
@@ -129,8 +179,8 @@ public class CourseService {
 
         emailService.sendCourseRejected(course.getInstructor().getEmail(), course.getTitle());
     }
-    
- // CourseService.java
+
+    /** --- Get all courses (Admin) --- */
     public List<CourseResponse> getAllCourses() {
         return courseRepository.findAll()
                 .stream()
