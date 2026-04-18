@@ -7,7 +7,11 @@ import com.thinkverge.lms.enums.SubmissionStatus;
 import com.thinkverge.lms.model.*;
 import com.thinkverge.lms.repository.*;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -93,5 +97,18 @@ public class SubmissionService {
                 .status(s.getStatus() != null ? s.getStatus().name() : null)
                 .submittedAt(s.getSubmittedAt())
                 .build();
+    }
+    
+    public void delete(Long submissionId, String email) {
+        User student = userRepository.findByEmail(email).orElseThrow();
+        Submission submission = submissionRepository.findById(submissionId).orElseThrow();
+
+        if (!submission.getStudent().getId().equals(student.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not your submission");
+        }
+        if (submission.getMarks() != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot delete a graded submission");
+        }
+        submissionRepository.deleteById(submissionId);
     }
 }

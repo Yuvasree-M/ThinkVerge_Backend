@@ -52,4 +52,13 @@ public class SubmissionController {
     ) {
         return submissionService.byAssignment(assignmentId);
     }
+    
+ // student delete (only if not graded)
+    @DeleteMapping("/{id}")
+    public void delete(
+            @PathVariable Long id,
+            Authentication auth
+    ) {
+        submissionService.delete(id, auth.getName());
+    }
 }
