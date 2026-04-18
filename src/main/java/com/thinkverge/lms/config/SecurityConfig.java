@@ -1,3 +1,126 @@
+//package com.thinkverge.lms.config;
+//
+//import com.thinkverge.lms.security.JwtFilter;
+//import lombok.RequiredArgsConstructor;
+//import org.springframework.context.annotation.Bean;
+//import org.springframework.context.annotation.Configuration;
+//import org.springframework.http.HttpMethod;
+//import org.springframework.security.authentication.AuthenticationManager;
+//import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+//import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+//import org.springframework.security.config.http.SessionCreationPolicy;
+//import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+//import org.springframework.security.crypto.password.PasswordEncoder;
+//import org.springframework.security.web.SecurityFilterChain;
+//import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+//import org.springframework.web.cors.*;
+//import org.springframework.web.multipart.support.MultipartFilter;
+//
+//import java.util.List;
+//
+//@Configuration
+//@RequiredArgsConstructor
+//public class SecurityConfig {
+//
+//    private final JwtFilter jwtFilter;
+//
+//    @Bean
+//    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+//        http
+//            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+//            .csrf(csrf -> csrf.disable())
+//            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+//            .authorizeHttpRequests(auth -> auth
+//
+//            	    // Public
+//            	    .requestMatchers("/api/auth/**").permitAll()
+//            	    .requestMatchers("/api/courses").permitAll()
+//            	    .requestMatchers("/api/courses/*").permitAll()
+//
+//            	    // ✅ FIRST: allow GET for all roles
+//            	    .requestMatchers(HttpMethod.GET, "/api/courses/**")
+//            	        .hasAnyRole("STUDENT", "INSTRUCTOR", "ADMIN")
+//
+//            	    .requestMatchers(HttpMethod.GET, "/api/modules/**")
+//            	        .hasAnyRole("STUDENT", "INSTRUCTOR", "ADMIN")
+//
+//            	    .requestMatchers(HttpMethod.GET, "/api/lessons/**")
+//            	        .hasAnyRole("STUDENT", "INSTRUCTOR", "ADMIN")
+//
+//            	    // ❗ THEN restrict write operations
+//            	    .requestMatchers("/api/modules/**")
+//            	        .hasAnyRole("INSTRUCTOR", "ADMIN")
+//
+//            	    .requestMatchers("/api/lessons/**")
+//            	        .hasAnyRole("INSTRUCTOR", "ADMIN")
+//
+//            	    // Admin
+//            	    .requestMatchers("/api/courses/admin/**").hasRole("ADMIN")
+//            	    .requestMatchers("/api/admin/**").hasRole("ADMIN")
+//
+//            	    // Instructor
+//            	    .requestMatchers("/api/courses/instructor/**").hasRole("INSTRUCTOR")
+//            	    .requestMatchers("/api/instructor/**").hasRole("INSTRUCTOR")
+//            	    .requestMatchers(HttpMethod.GET, "/api/assignments/**")
+//            	    .hasAnyRole("STUDENT", "INSTRUCTOR", "ADMIN")
+//            	.requestMatchers("/api/assignments/**")
+//            	    .hasAnyRole("INSTRUCTOR", "ADMIN")
+//
+//            	// Submissions
+//            	    .requestMatchers(HttpMethod.GET, "/api/submissions/my")
+//            	    .hasRole("STUDENT")
+//            	.requestMatchers(HttpMethod.POST, "/api/submissions")
+//            	    .hasRole("STUDENT")
+//            	.requestMatchers(HttpMethod.DELETE, "/api/submissions/*")   // ✅ add this
+//            	    .hasRole("STUDENT")
+//            	.requestMatchers(HttpMethod.GET, "/api/submissions/assignment/**")
+//            	    .hasAnyRole("INSTRUCTOR", "ADMIN")
+//            	.requestMatchers(HttpMethod.PUT, "/api/submissions/*/grade")
+//            	    .hasAnyRole("INSTRUCTOR", "ADMIN")
+//
+//            	// Upload
+//            	.requestMatchers("/api/upload").authenticated()
+//            	    // Student
+//            	    .requestMatchers("/api/student/**").hasRole("STUDENT")
+//
+//            	    .anyRequest().authenticated()
+//            	)
+//            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+//
+//        return http.build();
+//    }
+//
+//    @Bean
+//    AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+//        return config.getAuthenticationManager();
+//    }
+//
+//    @Bean
+//    PasswordEncoder passwordEncoder() {
+//        return new BCryptPasswordEncoder();
+//    }
+//    @Bean
+//    public MultipartFilter multipartFilter() {
+//        return new MultipartFilter();
+//    }
+//    @Bean
+//    CorsConfigurationSource corsConfigurationSource() {
+//        CorsConfiguration configuration = new CorsConfiguration();
+//        configuration.setAllowedOrigins(List.of(
+//                "http://localhost:5173",   // Vite React
+//                "http://127.0.0.1:5173",
+//                "https://thinkverge.netlify.app"
+//        ));
+//        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+//        configuration.setAllowedHeaders(List.of("*"));
+//        configuration.setAllowCredentials(true);
+//
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        source.registerCorsConfiguration("/**", configuration);
+//        return source;
+//    }
+//}
+
 package com.thinkverge.lms.config;
 
 import com.thinkverge.lms.security.JwtFilter;
@@ -29,69 +152,114 @@ public class SecurityConfig {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
 
-            	    // Public
-            	    .requestMatchers("/api/auth/**").permitAll()
-            	    .requestMatchers("/api/courses").permitAll()
-            	    .requestMatchers("/api/courses/*").permitAll()
+                // ── Public ───────────────────────────────────────────
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/courses").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/courses/{id:[0-9]+}").permitAll()
 
-            	    // ✅ FIRST: allow GET for all roles
-            	    .requestMatchers(HttpMethod.GET, "/api/courses/**")
-            	        .hasAnyRole("STUDENT", "INSTRUCTOR", "ADMIN")
+                // ── Courses: specific sub-paths FIRST (before generic GET) ──
+                .requestMatchers("/api/courses/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/courses/instructor/**").hasRole("INSTRUCTOR")
+                .requestMatchers(HttpMethod.GET, "/api/courses/**")
+                    .hasAnyRole("STUDENT", "INSTRUCTOR", "ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/courses/**")
+                    .hasAnyRole("INSTRUCTOR", "ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/courses/**")
+                    .hasAnyRole("INSTRUCTOR", "ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/courses/**")
+                    .hasAnyRole("INSTRUCTOR", "ADMIN")
 
-            	    .requestMatchers(HttpMethod.GET, "/api/modules/**")
-            	        .hasAnyRole("STUDENT", "INSTRUCTOR", "ADMIN")
+                // ── Modules ──────────────────────────────────────────
+                .requestMatchers(HttpMethod.GET, "/api/modules/**")
+                    .hasAnyRole("STUDENT", "INSTRUCTOR", "ADMIN")
+                .requestMatchers("/api/modules/**")
+                    .hasAnyRole("INSTRUCTOR", "ADMIN")
 
-            	    .requestMatchers(HttpMethod.GET, "/api/lessons/**")
-            	        .hasAnyRole("STUDENT", "INSTRUCTOR", "ADMIN")
+                // ── Lessons ──────────────────────────────────────────
+                .requestMatchers(HttpMethod.GET, "/api/lessons/**")
+                    .hasAnyRole("STUDENT", "INSTRUCTOR", "ADMIN")
+                .requestMatchers("/api/lessons/**")
+                    .hasAnyRole("INSTRUCTOR", "ADMIN")
 
-            	    // ❗ THEN restrict write operations
-            	    .requestMatchers("/api/modules/**")
-            	        .hasAnyRole("INSTRUCTOR", "ADMIN")
+                // ── Admin ────────────────────────────────────────────
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/users/**").hasAnyRole("ADMIN", "INSTRUCTOR", "STUDENT")
 
-            	    .requestMatchers("/api/lessons/**")
-            	        .hasAnyRole("INSTRUCTOR", "ADMIN")
+                // ── Instructor ───────────────────────────────────────
+                .requestMatchers("/api/instructor/**").hasRole("INSTRUCTOR")
 
-            	    // Admin
-            	    .requestMatchers("/api/courses/admin/**").hasRole("ADMIN")
-            	    .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                // ── Assignments ──────────────────────────────────────
+                .requestMatchers(HttpMethod.GET, "/api/assignments/**")
+                    .hasAnyRole("STUDENT", "INSTRUCTOR", "ADMIN")
+                .requestMatchers("/api/assignments/**")
+                    .hasAnyRole("INSTRUCTOR", "ADMIN")
 
-            	    // Instructor
-            	    .requestMatchers("/api/courses/instructor/**").hasRole("INSTRUCTOR")
-            	    .requestMatchers("/api/instructor/**").hasRole("INSTRUCTOR")
-            	    .requestMatchers(HttpMethod.GET, "/api/assignments/**")
-            	    .hasAnyRole("STUDENT", "INSTRUCTOR", "ADMIN")
-            	.requestMatchers("/api/assignments/**")
-            	    .hasAnyRole("INSTRUCTOR", "ADMIN")
+                // ── Submissions ──────────────────────────────────────
+                // Student-only: specific routes FIRST
+                .requestMatchers(HttpMethod.GET, "/api/submissions/my")
+                    .hasAnyRole("STUDENT", "INSTRUCTOR", "ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/submissions")
+                    .hasRole("STUDENT")
+                .requestMatchers(HttpMethod.DELETE, "/api/submissions/*")
+                    .hasRole("STUDENT")
+                // Instructor/Admin: assignment submissions
+                .requestMatchers(HttpMethod.GET, "/api/submissions/assignment/**")
+                    .hasAnyRole("INSTRUCTOR", "ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/submissions/*/grade")
+                    .hasAnyRole("INSTRUCTOR", "ADMIN")
 
-            	// Submissions
-            	    .requestMatchers(HttpMethod.GET, "/api/submissions/my")
-            	    .hasRole("STUDENT")
-            	.requestMatchers(HttpMethod.POST, "/api/submissions")
-            	    .hasRole("STUDENT")
-            	.requestMatchers(HttpMethod.DELETE, "/api/submissions/*")   // ✅ add this
-            	    .hasRole("STUDENT")
-            	.requestMatchers(HttpMethod.GET, "/api/submissions/assignment/**")
-            	    .hasAnyRole("INSTRUCTOR", "ADMIN")
-            	.requestMatchers(HttpMethod.PUT, "/api/submissions/*/grade")
-            	    .hasAnyRole("INSTRUCTOR", "ADMIN")
+                // ── Quizzes ──────────────────────────────────────────
+                // IMPORTANT: more-specific paths first
+                // Instructor endpoint includes "/instructor" suffix
+                .requestMatchers(HttpMethod.GET, "/api/quizzes/module/*/instructor")
+                    .hasAnyRole("INSTRUCTOR", "ADMIN")
+                // Module statuses for student
+                .requestMatchers(HttpMethod.GET, "/api/quizzes/module-status/**")
+                    .hasAnyRole("STUDENT", "INSTRUCTOR", "ADMIN")
+                // Generic module quiz (student — no correct answers)
+                .requestMatchers(HttpMethod.GET, "/api/quizzes/module/**")
+                    .hasAnyRole("STUDENT", "INSTRUCTOR", "ADMIN")
+                // Student: get my quiz attempts
+                .requestMatchers(HttpMethod.GET, "/api/quizzes/my/**")
+                    .hasAnyRole("STUDENT", "INSTRUCTOR", "ADMIN")
+                // Student: submit quiz
+                .requestMatchers(HttpMethod.POST, "/api/quizzes/submit")
+                    .hasRole("STUDENT")
+                // Instructor: create / delete quiz
+                .requestMatchers(HttpMethod.POST, "/api/quizzes")
+                    .hasAnyRole("INSTRUCTOR", "ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/quizzes/**")
+                    .hasAnyRole("INSTRUCTOR", "ADMIN")
 
-            	// Upload
-            	.requestMatchers("/api/upload").authenticated()
-            	    // Student
-            	    .requestMatchers("/api/student/**").hasRole("STUDENT")
+                // ── Enrollments ──────────────────────────────────────
+                .requestMatchers("/api/enrollments/**").authenticated()
 
-            	    .anyRequest().authenticated()
-            	)
+                // ── Progress ─────────────────────────────────────────
+                .requestMatchers("/api/progress/**").authenticated()
+
+                // ── Certificates ─────────────────────────────────────
+                .requestMatchers("/api/certificates/**").hasRole("STUDENT")
+
+                // ── Upload ───────────────────────────────────────────
+                .requestMatchers("/api/upload").authenticated()
+
+                // ── Student ──────────────────────────────────────────
+                .requestMatchers("/api/student/**").hasRole("STUDENT")
+
+                .anyRequest().authenticated()
+            )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
     @Bean
-    AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+    AuthenticationManager authenticationManager(AuthenticationConfiguration config)
+            throws Exception {
         return config.getAuthenticationManager();
     }
 
@@ -99,15 +267,17 @@ public class SecurityConfig {
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
     @Bean
     public MultipartFilter multipartFilter() {
         return new MultipartFilter();
     }
+
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(
-                "http://localhost:5173",   // Vite React
+                "http://localhost:5173",
                 "http://127.0.0.1:5173",
                 "https://thinkverge.netlify.app"
         ));
