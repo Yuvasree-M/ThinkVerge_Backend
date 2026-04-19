@@ -20,4 +20,10 @@ public class CertificateController {
     public List<CertificateResponse> my(Authentication auth) {
         return certificateService.myCertificates(auth.getName());
     }
+
+    // Public: view a single certificate by ID (used by the certificate page)
+    @GetMapping("/{id}")
+    public CertificateResponse getById(@PathVariable Long id) {
+        return certificateService.getById(id);
+    }
 }
