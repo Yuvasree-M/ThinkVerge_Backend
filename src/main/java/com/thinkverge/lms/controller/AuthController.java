@@ -33,8 +33,6 @@ public class AuthController {
     ) {
         AuthResponse auth = authService.register(request);
 
-        setJwtCookie(response, auth.getToken());
-
         return auth;
     }
 
@@ -45,8 +43,6 @@ public class AuthController {
             HttpServletResponse response
     ) {
         AuthResponse auth = authService.login(request);
-
-        setJwtCookie(response, auth.getToken());
 
         return auth;
     }
@@ -74,22 +70,7 @@ public class AuthController {
         response.addCookie(cookie);
     }
 
-    // ================= SET COOKIE =================
-    private void setJwtCookie(HttpServletResponse response, String token) {
 
-        Cookie cookie = new Cookie("jwt", token);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(isProd); // ✅ auto (false local, true prod)
-        cookie.setPath("/");
-
-        response.addCookie(cookie);
-
-        // ✅ Required ONLY in production (Netlify + Render)
-        if (isProd) {
-            response.addHeader("Set-Cookie",
-                "jwt=" + token + "; Path=/; HttpOnly; Secure; SameSite=None");
-        }
-    }
 
     // ================= EXTRACT TOKEN =================
     private String extractTokenFromCookie(HttpServletRequest request) {

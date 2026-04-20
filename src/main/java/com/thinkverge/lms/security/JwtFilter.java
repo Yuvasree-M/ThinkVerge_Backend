@@ -44,16 +44,14 @@ public class JwtFilter extends OncePerRequestFilter {
         if (token != null) {
             try {
 
-                // ✅ BLOCKLIST CHECK
-                String jti = jwtService.extractJti(token);
-                if (tokenBlocklist.isRevoked(jti)) {
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    return;
-                }
+            	if (!jwtService.validateToken(token)) {
+            	    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            	    return;
+            	}
 
-                String username = jwtService.extractUsername(token);
-                String role = jwtService.extractUserRole(token);
-
+            	String jti = jwtService.extractJti(token);
+            	String username = jwtService.extractUsername(token);
+            	String role = jwtService.extractUserRole(token);
                 if (username != null &&
                         SecurityContextHolder.getContext().getAuthentication() == null) {
 
@@ -91,15 +89,21 @@ public class JwtFilter extends OncePerRequestFilter {
 
         chain.doFilter(request, response);
     }
-
-    // ✅ READ TOKEN FROM COOKIE (IMPORTANT CHANGE)
     private String extractToken(HttpServletRequest request) {
 
-        if (request.getCookies() == null) return null;
+        // ✅ 1. Try Authorization header FIRST
+        String authHeader = request.getHeader("Authorization");
 
-        for (Cookie cookie : request.getCookies()) {
-            if ("jwt".equals(cookie.getName())) {
-                return cookie.getValue();
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+
+        // ✅ 2. Fallback to cookie
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("jwt".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
             }
         }
 
