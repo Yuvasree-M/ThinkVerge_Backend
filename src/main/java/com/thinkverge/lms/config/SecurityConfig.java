@@ -215,7 +215,8 @@ public class SecurityConfig {
 
                 // ── Public ───────────────────────────────────────────
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/public/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/public/feedback").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/courses").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/courses/{id:[0-9]+}").permitAll()
 
@@ -245,6 +246,11 @@ public class SecurityConfig {
 
                 // ── Admin ────────────────────────────────────────────
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET,  "/api/users/pending").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT,  "/api/users/*/approve").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT,  "/api/public/feedback/*/approve").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/public/feedback/*").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/public/feedback/pending").hasRole("ADMIN")
                 .requestMatchers("/api/users/**").hasAnyRole("ADMIN", "INSTRUCTOR", "STUDENT")
 
                 // ── Instructor ───────────────────────────────────────

@@ -42,6 +42,10 @@ public class User {
     @Column(name = "last_seen")
     private LocalDateTime lastSeen;
 
+    @Builder.Default
+    @Column(name = "is_approved", nullable = false)
+    private Boolean approved = false;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

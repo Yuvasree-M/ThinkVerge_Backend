@@ -1,3 +1,72 @@
+//package com.thinkverge.lms.controller;
+//
+//import com.thinkverge.lms.enums.Role;
+//import com.thinkverge.lms.model.User;
+//import com.thinkverge.lms.service.UserService;
+//
+//import lombok.RequiredArgsConstructor;
+//
+//import org.springframework.security.core.Authentication;
+//import org.springframework.web.bind.annotation.*;
+//
+//import java.util.List;
+//
+//@RestController
+//@RequestMapping("/api/users")
+//@RequiredArgsConstructor
+//public class UserController {
+//
+//    private final UserService userService;
+//
+//    // current user
+//    @GetMapping("/me")
+//    public User me(Authentication auth) {
+//        return userService.myProfile(auth.getName());
+//    }
+//
+//    // all instructors
+//    @GetMapping("/instructors")
+//    public List<User> instructors() {
+//        return userService.getAllInstructors();
+//    }
+//
+//    // all students
+//    @GetMapping("/students")
+//    public List<User> students() {
+//        return userService.getAllStudents();
+//    }
+//
+//    // ================= ADMIN =================
+//
+//    // all users (admin)
+//    @GetMapping
+//    public List<User> allUsers() {
+//        return userService.getAllUsers();
+//    }
+//
+//    // change role
+//    @PutMapping("/{id}/role")
+//    public User changeRole(
+//            @PathVariable Long id,
+//            @RequestParam Role role
+//    ) {
+//        return userService.changeRole(id, role);
+//    }
+//
+//    // delete user
+//    @DeleteMapping("/{id}")
+//    public void deleteUser(@PathVariable Long id) {
+//        userService.deleteUser(id);
+//    }
+//
+//    // update last seen
+//    @PutMapping("/last-seen")
+//    public void lastSeen(Authentication auth) {
+//        userService.updateLastSeen(auth.getName());
+//    }
+//}
+
+
 package com.thinkverge.lms.controller;
 
 import com.thinkverge.lms.enums.Role;
@@ -24,19 +93,19 @@ public class UserController {
         return userService.myProfile(auth.getName());
     }
 
-    // all instructors
+    // all approved instructors
     @GetMapping("/instructors")
     public List<User> instructors() {
         return userService.getAllInstructors();
     }
 
-    // all students
+    // all approved students
     @GetMapping("/students")
     public List<User> students() {
         return userService.getAllStudents();
     }
 
-    // ================= ADMIN =================
+    // ─── ADMIN ──────────────────────────────────────────────────
 
     // all users (admin)
     @GetMapping
@@ -44,7 +113,19 @@ public class UserController {
         return userService.getAllUsers();
     }
 
-    // change role
+    // pending approval users (admin)
+    @GetMapping("/pending")
+    public List<User> pendingUsers() {
+        return userService.getPendingUsers();
+    }
+
+    // approve a user (admin)
+    @PutMapping("/{id}/approve")
+    public User approveUser(@PathVariable Long id) {
+        return userService.approveUser(id);
+    }
+
+    // change role (admin)
     @PutMapping("/{id}/role")
     public User changeRole(
             @PathVariable Long id,
@@ -53,7 +134,7 @@ public class UserController {
         return userService.changeRole(id, role);
     }
 
-    // delete user
+    // delete user (admin)
     @DeleteMapping("/{id}")
     public void deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
@@ -61,7 +142,7 @@ public class UserController {
 
     // update last seen
     @PutMapping("/last-seen")
-    public void lastSeen(Authentication auth) {
+    public void updateLastSeen(Authentication auth) {
         userService.updateLastSeen(auth.getName());
     }
 }
