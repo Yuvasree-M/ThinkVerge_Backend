@@ -128,6 +128,7 @@
 //                .requestMatchers("/api/progress/**").authenticated()
 //
 //                // ── Certificates ─────────────────────────────────────
+//                .requestMatchers(HttpMethod.GET, "/api/certificates/{id:[0-9]+}").permitAll()
 //                .requestMatchers("/api/certificates/**").hasRole("STUDENT")
 //
 //                // ── Upload ───────────────────────────────────────────
@@ -177,8 +178,6 @@
 //    }
 //}
 
-
-
 package com.thinkverge.lms.config;
 
 import com.thinkverge.lms.security.JwtFilter;
@@ -216,6 +215,7 @@ public class SecurityConfig {
 
                 // ── Public ───────────────────────────────────────────
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/public/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/courses").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/courses/{id:[0-9]+}").permitAll()
 

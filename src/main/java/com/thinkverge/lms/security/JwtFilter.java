@@ -33,7 +33,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        // ✅ STEP 1: SKIP PUBLIC ENDPOINTS (VERY IMPORTANT)
+        // ✅ Skip auth endpoints
         if (path.startsWith("/api/auth/")) {
             chain.doFilter(request, response);
             return;
@@ -42,10 +42,9 @@ public class JwtFilter extends OncePerRequestFilter {
         String token = extractToken(request);
 
         if (token != null) {
-
             try {
 
-                // ❌ Check revoked token
+                // ✅ BLOCKLIST CHECK
                 String jti = jwtService.extractJti(token);
                 if (tokenBlocklist.isRevoked(jti)) {
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -67,7 +66,6 @@ public class JwtFilter extends OncePerRequestFilter {
                         return;
                     }
 
-                    // validate token
                     if (jwtService.validateToken(token)) {
 
                         List<SimpleGrantedAuthority> authorities =
@@ -94,14 +92,17 @@ public class JwtFilter extends OncePerRequestFilter {
         chain.doFilter(request, response);
     }
 
+    // ✅ READ TOKEN FROM COOKIE (IMPORTANT CHANGE)
     private String extractToken(HttpServletRequest request) {
 
-        String header = request.getHeader("Authorization");
+        if (request.getCookies() == null) return null;
 
-        if (header == null || !header.startsWith("Bearer ")) {
-            return null;
+        for (Cookie cookie : request.getCookies()) {
+            if ("jwt".equals(cookie.getName())) {
+                return cookie.getValue();
+            }
         }
 
-        return header.substring(7);
+        return null;
     }
 }
