@@ -1,89 +1,3 @@
-//package com.thinkverge.lms.controller;
-//
-//import com.thinkverge.lms.dto.request.LoginRequest;
-//import com.thinkverge.lms.dto.request.RegisterRequest;
-//import com.thinkverge.lms.dto.response.AuthResponse;
-//import com.thinkverge.lms.security.JwtService;
-//import com.thinkverge.lms.security.TokenBlocklist;
-//import com.thinkverge.lms.service.AuthService;
-//
-//import jakarta.servlet.http.*;
-//import lombok.RequiredArgsConstructor;
-//import org.springframework.beans.factory.annotation.Value;
-//import org.springframework.web.bind.annotation.*;
-//
-//@RestController
-//@RequestMapping("/api/auth")
-//@RequiredArgsConstructor
-//public class AuthController {
-//
-//    private final AuthService authService;
-//    private final JwtService jwtService;
-//    private final TokenBlocklist tokenBlocklist;
-//
-//    // ✅ AUTO SWITCH (set true in Render)
-//    @Value("${app.prod:false}")
-//    private boolean isProd;
-//
-//    // ================= REGISTER =================
-//    @PostMapping("/register")
-//    public AuthResponse register(
-//            @RequestBody RegisterRequest request,
-//            HttpServletResponse response
-//    ) {
-//        AuthResponse auth = authService.register(request);
-//
-//        return auth;
-//    }
-//
-//    // ================= LOGIN =================
-//    @PostMapping("/login")
-//    public AuthResponse login(
-//            @RequestBody LoginRequest request,
-//            HttpServletResponse response
-//    ) {
-//        AuthResponse auth = authService.login(request);
-//
-//        return auth;
-//    }
-//
-//    // ================= LOGOUT =================
-//    @PostMapping("/logout")
-//    public void logout(HttpServletRequest request,
-//                       HttpServletResponse response) {
-//
-//        String token = extractTokenFromCookie(request);
-//
-//        if (token != null) {
-//            String jti = jwtService.extractJti(token);
-//            long expiry = jwtService.getTokenExpiry(token);
-//            tokenBlocklist.revokeToken(jti, expiry);
-//        }
-//
-//        // ❌ Delete cookie
-//        Cookie cookie = new Cookie("jwt", null);
-//        cookie.setHttpOnly(true);
-//        cookie.setSecure(isProd);
-//        cookie.setPath("/");
-//        cookie.setMaxAge(0);
-//
-//        response.addCookie(cookie);
-//    }
-//
-//
-//
-//    // ================= EXTRACT TOKEN =================
-//    private String extractTokenFromCookie(HttpServletRequest request) {
-//        if (request.getCookies() == null) return null;
-//
-//        for (Cookie cookie : request.getCookies()) {
-//            if ("jwt".equals(cookie.getName())) {
-//                return cookie.getValue();
-//            }
-//        }
-//        return null;
-//    }
-//}
 package com.thinkverge.lms.controller;
 
 import com.thinkverge.lms.dto.request.LoginRequest;
@@ -137,21 +51,23 @@ public class AuthController {
         try {
             AuthResponse auth = authService.login(request);
 
-            // ✅ Set HttpOnly cookie only when login succeeds and token exists
             if (auth.getToken() != null) {
-                Cookie cookie = new Cookie("jwt", auth.getToken());
-                cookie.setHttpOnly(true);
-                cookie.setSecure(isProd);
-                cookie.setPath("/");
-                cookie.setMaxAge(7 * 24 * 60 * 60); // 7 days
-                response.addCookie(cookie);
+                // Use raw Set-Cookie header to support SameSite=None (Java Cookie API doesn't support it)
+                // SameSite=None + Secure are REQUIRED for cross-site cookies (Netlify → Render)
+                String cookieHeader = String.format(
+                    "jwt=%s; HttpOnly; Path=/; Max-Age=%d; SameSite=%s%s",
+                    auth.getToken(),
+                    7 * 24 * 60 * 60,          // 7 days
+                    isProd ? "None" : "Lax",    // None required for cross-site in prod
+                    isProd ? "; Secure" : ""    // Secure required when SameSite=None
+                );
+                response.setHeader("Set-Cookie", cookieHeader);
             }
 
             return ResponseEntity.ok(auth);
 
         } catch (RuntimeException ex) {
             String msg = ex.getMessage() != null ? ex.getMessage() : "Invalid credentials";
-            // Pending approval → 403, invalid credentials → 401
             if (msg.toLowerCase().contains("pending") || msg.toLowerCase().contains("approval")) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body(java.util.Map.of("message", msg));
@@ -175,13 +91,13 @@ public class AuthController {
             } catch (Exception ignored) {}
         }
 
-        // Clear the JWT cookie
-        Cookie cookie = new Cookie("jwt", null);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(isProd);
-        cookie.setPath("/");
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
+        // Clear cookie — must mirror the same attributes used when setting it
+        String cookieHeader = String.format(
+            "jwt=; HttpOnly; Path=/; Max-Age=0; SameSite=%s%s",
+            isProd ? "None" : "Lax",
+            isProd ? "; Secure" : ""
+        );
+        response.setHeader("Set-Cookie", cookieHeader);
     }
 
     // ================= EXTRACT TOKEN =================
