@@ -77,6 +77,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -144,5 +145,13 @@ public class UserController {
     @PutMapping("/last-seen")
     public void updateLastSeen(Authentication auth) {
         userService.updateLastSeen(auth.getName());
+    }
+    @PostMapping("/api/users/profile-image")
+    public User updateProfileImage(
+            @RequestParam("file") MultipartFile file,
+            Authentication auth) {
+
+        String email = auth.getName();
+        return userService.updateProfileImage(email, file);
     }
 }

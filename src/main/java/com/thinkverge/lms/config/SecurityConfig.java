@@ -72,6 +72,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT,  "/api/public/feedback/*/approve").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/public/feedback/*").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/public/feedback/pending").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/users/profile-image")
+                .hasAnyRole("ADMIN", "INSTRUCTOR", "STUDENT")
+
                 .requestMatchers("/api/users/**").hasAnyRole("ADMIN", "INSTRUCTOR", "STUDENT")
 
                 // ── Instructor ───────────────────────────────────────
@@ -146,6 +149,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/student/**").hasRole("STUDENT")
                 .requestMatchers(HttpMethod.GET, "/api/public/feedback/approved").permitAll()
             	.requestMatchers("/actuator/health").permitAll()
+            	.requestMatchers("/api/users/profile-image").authenticated()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

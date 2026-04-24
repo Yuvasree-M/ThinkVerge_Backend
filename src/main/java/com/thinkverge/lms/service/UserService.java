@@ -70,13 +70,15 @@ import com.thinkverge.lms.model.User;
 import com.thinkverge.lms.enums.Role;
 import com.thinkverge.lms.repository.UserRepository;
 import com.thinkverge.lms.service.EmailService;
-
+import com.cloudinary.Cloudinary;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -84,6 +86,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final EmailService emailService;
+    private final Cloudinary cloudinary; // ✅ ADD THIS
 
     public User getByEmail(String email) {
         return userRepository.findByEmail(email).orElseThrow();
@@ -169,5 +172,26 @@ public class UserService {
     // ── Admin: delete user ────────────────────────────────────
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
+    }
+    
+
+
+    public User updateProfileImage(String email, MultipartFile file) {
+        try {
+            Map<?, ?> result = cloudinary.uploader().upload(file.getBytes(), Map.of(
+                    "folder", "profile-images",
+                    "resource_type", "image"
+            ));
+
+            String imageUrl = result.get("secure_url").toString();
+
+            User user = userRepository.findByEmail(email).orElseThrow();
+            user.setProfileImage(imageUrl);
+
+            return userRepository.save(user);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Profile image upload failed: " + e.getMessage());
+        }
     }
 }
