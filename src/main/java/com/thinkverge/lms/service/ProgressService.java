@@ -77,8 +77,7 @@ public class ProgressService {
     public List<ProgressResponse> getStudentProgress(String email) {
         User student = userRepository.findByEmail(email).orElseThrow();
 
-        return progressRepository
-                .findByStudent(student)
+        return progressRepository.findByStudentWithLesson(student)
                 .stream()
                 .map(p -> {
                     Lesson lesson = p.getLesson();

@@ -34,6 +34,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
 
                 // ── Public ───────────────────────────────────────────
+            	
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/public/feedback").permitAll()
@@ -144,6 +145,7 @@ public class SecurityConfig {
                 // ── Student ──────────────────────────────────────────
                 .requestMatchers("/api/student/**").hasRole("STUDENT")
                 .requestMatchers(HttpMethod.GET, "/api/public/feedback/approved").permitAll()
+            	.requestMatchers("/actuator/health").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

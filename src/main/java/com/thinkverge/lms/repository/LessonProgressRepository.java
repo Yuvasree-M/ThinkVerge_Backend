@@ -5,6 +5,8 @@ import com.thinkverge.lms.model.User;
 import com.thinkverge.lms.model.Lesson;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,4 +28,13 @@ public interface LessonProgressRepository
             User student,
             Long courseId
     );
+    
+    @Query("""
+    	    SELECT lp FROM LessonProgress lp
+    	    JOIN FETCH lp.lesson l
+    	    JOIN FETCH l.module m
+    	    JOIN FETCH m.course
+    	    WHERE lp.student = :student
+    	    """)
+    	List<LessonProgress> findByStudentWithLesson(@Param("student") User student);
 }
