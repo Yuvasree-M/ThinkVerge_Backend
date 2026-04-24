@@ -30,31 +30,18 @@ public class LandingController {
     @GetMapping("/instructors")
     @Transactional(readOnly = true)
     public List<InstructorPublicResponse> instructors() {
-        List<User> instructors = userRepository.findByRole(Role.INSTRUCTOR);
-        return instructors.stream().map(inst -> {
-            List<Course> courses = courseRepository.findByInstructor(inst);
-            int studentCount = courses.stream()
-                    .mapToInt(c -> enrollmentRepository.findByCourse(c).size())
-                    .sum();
-            // derive specialty from first course category or fallback
-            String specialty = courses.stream()
-                    .map(Course::getCategory)
-                    .filter(cat -> cat != null && !cat.isBlank())
-                    .findFirst()
-                    .orElse("Online Education");
-
-            return InstructorPublicResponse.builder()
-                    .id(inst.getId())
-                    .name(inst.getName())
-                    .email(inst.getEmail())
-                    .profileImage(inst.getProfileImage())
-                    .courseCount(courses.size())
-                    .studentCount(studentCount)
-                    .specialty(specialty)
-                    .build();
-        }).collect(Collectors.toList());
+        return userRepository.findInstructorStats().stream()
+            .map(row -> InstructorPublicResponse.builder()
+                .id(((Number) row[0]).longValue())
+                .name((String) row[1])
+                .email((String) row[2])
+                .profileImage((String) row[3])
+                .courseCount(((Number) row[4]).intValue())
+                .studentCount(((Number) row[5]).intValue())
+                .specialty(row[6] != null ? (String) row[6] : "Online Education")
+                .build())
+            .toList();
     }
-
     // ── Public: testimonials from certificate holders ─────────
     @GetMapping("/testimonials")
     @Transactional(readOnly = true)

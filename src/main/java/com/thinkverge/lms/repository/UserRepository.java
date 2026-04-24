@@ -20,6 +20,19 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     List<User> findByRoleAndApprovedTrue(Role role);
     
-    @Query("SELECT u.id, u.name, u.email, u.profile_image, COUNT(DISTINCT c.id)  AS courseCount, COUNT(DISTINCT e.id)  AS studentCount, MIN(c.category) AS specialty FROM users u LEFT JOIN courses c  ON c.instructor_id = u.id LEFT JOIN enrollments e ON e.course_id = c.id WHERE u.role = 'INSTRUCTOR' GROUP BY u.id, u.name, u.email, u.profile_image , nativeQuery = true")
+    @Query(
+    	    value = """
+    	        SELECT u.id, u.name, u.email, u.profile_image,
+    	               COUNT(DISTINCT c.id)  AS courseCount,
+    	               COUNT(DISTINCT e.id)  AS studentCount,
+    	               MIN(c.category)       AS specialty
+    	        FROM users u
+    	        LEFT JOIN courses c ON c.instructor_id = u.id
+    	        LEFT JOIN enrollments e ON e.course_id = c.id
+    	        WHERE u.role = 'INSTRUCTOR'
+    	        GROUP BY u.id, u.name, u.email, u.profile_image
+    	        """,
+    	    nativeQuery = true
+    	)
     	List<Object[]> findInstructorStats();
 }
