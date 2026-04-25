@@ -87,7 +87,8 @@ public class UserService {
     private final UserRepository userRepository;
     private final EmailService emailService;
     private final Cloudinary cloudinary; // ✅ ADD THIS
-
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+    
     public User getByEmail(String email) {
         return userRepository.findByEmail(email).orElseThrow();
     }
@@ -193,5 +194,43 @@ public class UserService {
         } catch (Exception e) {
             throw new RuntimeException("Profile image upload failed: " + e.getMessage());
         }
+    }
+    
+    public User updateProfile(String email, String name, String currentPassword, String newPassword, MultipartFile file) {
+        User user = userRepository.findByEmail(email).orElseThrow();
+
+        if (name != null && !name.isBlank()) {
+            user.setName(name);
+        }
+
+        if (newPassword != null && !newPassword.isBlank()) {
+            // ✅ Must provide current password to change it
+            if (currentPassword == null || currentPassword.isBlank()) {
+                throw new RuntimeException("Current password is required");
+            }
+            if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+                throw new RuntimeException("Current password is incorrect");
+            }
+            user.setPassword(passwordEncoder.encode(newPassword));
+        }
+
+        if (file != null && !file.isEmpty()) {
+            try {
+                Map<?, ?> result = cloudinary.uploader().upload(file.getBytes(), Map.of(
+                    "folder", "profile-images",
+                    "resource_type", "image"
+                ));
+                user.setProfileImage(result.get("secure_url").toString());
+            } catch (Exception e) {
+                throw new RuntimeException("Profile image upload failed: " + e.getMessage());
+            }
+        }
+
+        return userRepository.save(user);
+    }
+    public User deleteProfileImage(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow();
+        user.setProfileImage(null);
+        return userRepository.save(user);
     }
 }

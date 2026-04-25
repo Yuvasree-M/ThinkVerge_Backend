@@ -74,7 +74,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/public/feedback/pending").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/users/profile-image")
                 .hasAnyRole("ADMIN", "INSTRUCTOR", "STUDENT")
-
+                .requestMatchers(HttpMethod.PUT, "/api/users/profile").hasAnyRole("ADMIN", "INSTRUCTOR", "STUDENT")
+                .requestMatchers(HttpMethod.DELETE, "/api/users/profile-image")
+                .hasAnyRole("ADMIN", "INSTRUCTOR", "STUDENT")
                 .requestMatchers("/api/users/**").hasAnyRole("ADMIN", "INSTRUCTOR", "STUDENT")
 
                 // ── Instructor ───────────────────────────────────────
@@ -168,10 +170,7 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
-    public MultipartFilter multipartFilter() {
-        return new MultipartFilter();
-    }
+
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
