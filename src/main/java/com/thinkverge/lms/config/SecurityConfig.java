@@ -144,14 +144,22 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/certificates/{id:[0-9]+}").permitAll()
                 .requestMatchers("/api/certificates/**").hasRole("STUDENT")
 
-                // ── Upload ───────────────────────────────────────────
+             // ── Upload ───────────────────────────────────────────
                 .requestMatchers("/api/upload").authenticated()
 
+                // ── AI Messages (MUST be before generic /api/messages/**) ────
+                .requestMatchers("/api/messages/ai/**").hasAnyRole("STUDENT", "INSTRUCTOR")
+
+                // ── Messages ─────────────────────────────────────────
+                .requestMatchers(HttpMethod.GET,  "/api/messages/**").hasAnyRole("STUDENT", "INSTRUCTOR")
+                .requestMatchers(HttpMethod.POST, "/api/messages/**").hasAnyRole("STUDENT", "INSTRUCTOR")
                 // ── Student ──────────────────────────────────────────
                 .requestMatchers("/api/student/**").hasRole("STUDENT")
                 .requestMatchers(HttpMethod.GET, "/api/public/feedback/approved").permitAll()
             	.requestMatchers("/actuator/health").permitAll()
             	.requestMatchers("/api/users/profile-image").authenticated()
+           
+            	
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

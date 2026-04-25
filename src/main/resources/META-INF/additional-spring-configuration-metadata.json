@@ -1,32 +1,5 @@
-{"properties": [
-  {
-    "name": "jwt.expiration",
-    "type": "java.lang.String",
-    "description": "A description for 'jwt.expiration'"
-  },
-  {
-    "name": "jwt.secret",
-    "type": "java.lang.String",
-    "description": "A description for 'jwt.secret'"
-  },
-  {
-    "name": "cloudinary.api-secret",
-    "type": "java.lang.String",
-    "description": "A description for 'cloudinary.api-secret'"
-  },
-  {
-    "name": "cloudinary.cloud-name",
-    "type": "java.lang.String",
-    "description": "A description for 'cloudinary.cloud-name'"
-  },
-  {
-    "name": "cloudinary.api-key",
-    "type": "java.lang.String",
-    "description": "A description for 'cloudinary.api-key'"
-  },
-  {
-    "name": "app.prod",
-    "type": "java.lang.String",
-    "description": "A description for 'app.prod'"
-  }
-]}
+{"properties": [{
+  "name": "spring.ai.google.genai.api-key",
+  "type": "java.lang.String",
+  "description": "A description for 'spring.ai.google.genai.api-key'"
+}]}
