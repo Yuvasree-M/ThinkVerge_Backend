@@ -5,18 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Generic API response wrapper.
- *
- * Usage:
- *   ApiResponse<String>         → for plain text/AI replies
- *   ApiResponse<UserResponse>   → for object payloads
- *   ApiResponse<Void>           → for success/error with no data
- *
- * The old non-generic ApiResponse had only {success, message}.
- * This version adds a generic <T> data field so controllers can
- * return ApiResponse<String>, ApiResponse<List<X>>, etc.
- */
 @Data
 @Builder
 @NoArgsConstructor

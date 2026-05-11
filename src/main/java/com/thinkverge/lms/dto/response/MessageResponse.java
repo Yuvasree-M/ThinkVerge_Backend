@@ -12,11 +12,12 @@ public class MessageResponse {
     private Long id;
     private Long senderId;
     private String senderName;
+    private Long receiverId;
     private String content;
     private Boolean aiMessage;
     private LocalDateTime sentAt;
 
-    // ── Nested DTOs used by message endpoints ─────────────────────────────────
+    // ── Nested DTOs ───────────────────────────────────────────────────────────
 
     @Data
     @Builder

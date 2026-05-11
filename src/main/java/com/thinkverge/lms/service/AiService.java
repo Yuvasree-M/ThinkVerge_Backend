@@ -1,40 +1,81 @@
 package com.thinkverge.lms.service;
 
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.*;
+
 @Service
+@RequiredArgsConstructor
 public class AiService {
 
-    private final ChatClient chatClient;
+    @Value("${groq.api.key}")
+    private String apiKey;
 
-    // Constructor injection via Builder — Spring AI auto-configures this
-    public AiService(ChatClient.Builder builder) {
-        this.chatClient = builder.build();
-    }
+    @Value("${groq.api.url}")
+    private String apiUrl;
+
+    private final RestTemplate restTemplate = new RestTemplate();
 
     public String getAiReply(String courseContext, String question) {
+
         try {
-            return chatClient.prompt()
-                .system("You are a helpful AI assistant for the course: " + courseContext)
-                .user(question)
-                .call()
-                .content();
-        } catch (RuntimeException e) {
-            String msg = e.getMessage() != null ? e.getMessage() : "";
-            if (msg.contains("429") || msg.contains("quota")) {
-                throw new ResponseStatusException(
-                    HttpStatus.TOO_MANY_REQUESTS,
-                    "AI is temporarily rate-limited. Please wait a moment and try again."
-                );
-            }
-            throw new ResponseStatusException(
-                HttpStatus.SERVICE_UNAVAILABLE,
-                "AI service is currently unavailable."
+           
+            Map<String, Object> body = new HashMap<>();
+
+            body.put("model" , "llama-3.3-70b-versatile");
+
+            List<Map<String, String>> messages = new ArrayList<>();
+
+            messages.add(Map.of(
+                    "role", "system",
+                    "content", "You are a helpful AI tutor for course: " + courseContext
+            ));
+
+            messages.add(Map.of(
+                    "role", "user",
+                    "content", question
+            ));
+
+            body.put("messages", messages);
+            body.put("temperature", 0.5);
+
+           
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(apiKey);
+
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+
+            ResponseEntity<Map> response = restTemplate.postForEntity(
+                    apiUrl,
+                    request,
+                    Map.class
             );
+
+          
+            Map responseBody = response.getBody();
+
+            if (responseBody == null) {
+                return "No response from AI";
+            }
+
+            List choices = (List) responseBody.get("choices");
+            if (choices == null || choices.isEmpty()) {
+                return "Invalid AI response";
+            }
+
+            Map choice = (Map) choices.get(0);
+            Map message = (Map) choice.get("message");
+
+            return message.get("content").toString();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "AI service error: " + e.getMessage();
         }
     }
 }

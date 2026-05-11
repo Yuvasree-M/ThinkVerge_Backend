@@ -12,11 +12,8 @@ import java.util.List;
 
 public interface MessageRepository extends JpaRepository<Message, Long> {
 
-    // All messages in a course, ordered by time
+    // All messages in a course ordered by time
     List<Message> findByCourseOrderBySentAtAsc(Course course);
-
-    // Legacy — keep for compatibility
-    List<Message> findBySenderAndReceiver(User sender, User receiver);
 
     // Direct human messages only (student ↔ instructor) — AI messages excluded
     @Query("""
@@ -35,12 +32,13 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
             @Param("course") Course course
     );
 
-    // AI chat messages for a specific student in a course (student's AI tab only)
+    // AI chat messages for a specific student in a course
+    // sender = student (their question), OR receiver = student (AI reply to them)
     @Query("""
         SELECT m FROM Message m
         WHERE m.course = :course
           AND m.isAiMessage = true
-          AND m.receiver = :student
+          AND (m.sender = :student OR m.receiver = :student)
         ORDER BY m.sentAt ASC
         """)
     List<Message> findAiMessagesByStudentAndCourse(
